@@ -1,0 +1,5 @@
+{
+    "plugins": [
+        "@fivethree/billy-plugin-core"
+    ]
+}
