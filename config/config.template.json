@@ -1,0 +1,7 @@
+{
+    "core": "../billy-core",
+    "core_plugin": "../billy-core-plugin",
+    "cli": "../billy-cli",
+    "plugin": "../billy-plugin",
+    "app": "../billy-app"
+}
