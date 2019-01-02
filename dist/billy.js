@@ -21,7 +21,7 @@ const billy_core_1 = require("@fivethree/billy-core");
 let DevKit = class DevKit {
     release(context) {
         return __awaiter(this, void 0, void 0, function* () {
-            const { print, parseJSON, prompt, writeJSON, app, core, core_plugin, cli, exampleApp, plugin, publish, gitClean } = context;
+            const { print, parseJSON, prompt, writeJSON, app, core, core_plugin, cli, exampleApp, plugin, publish, gitClean, bump, push_to_remote } = context;
             print('reading config file...⌛');
             const config = parseJSON(app.appDir + '/..' + '/config/config.json');
             const status = {};
@@ -47,29 +47,29 @@ let DevKit = class DevKit {
                 coreC.version = version;
                 writeJSON(config.core + '/package.json', coreC);
                 yield core(context);
-                yield publish(context, 'core');
+                yield publish(context, version, 'core');
                 core_pluginC.version = version;
                 core_pluginC.devDependencies['@fivethree/billy-core'] = version;
                 writeJSON(config.core_plugin + '/package.json', core_pluginC);
                 yield core_plugin(context);
-                yield publish(context, 'core_plugin');
+                yield publish(context, version, 'core_plugin');
                 cliC.version = version;
                 cliC.dependencies['@fivethree/billy-core'] = version;
                 cliC.dependencies['@fivethree/billy-plugin-core'] = version;
                 writeJSON(config.cli + '/package.json', cliC);
                 yield cli(context);
-                yield publish(context, 'cli');
+                yield publish(context, version, 'cli');
                 pluginC.version = version;
                 pluginC.devDependencies['@fivethree/billy-core'] = version;
                 writeJSON(config.plugin + '/package.json', pluginC);
                 yield plugin(context);
-                yield publish(context, 'plugin');
+                yield publish(context, version, 'plugin');
                 appC.version = version;
                 appC.dependencies['@fivethree/billy-core'] = version;
                 appC.dependencies['@fivethree/billy-plugin-core'] = version;
                 writeJSON(config.app + '/package.json', appC);
                 yield exampleApp(context);
-                yield publish(context, 'app');
+                yield publish(context, version, 'app');
                 print(`Done publishing version ${version}! ✅`);
             }
             else {
@@ -116,11 +116,13 @@ let DevKit = class DevKit {
             print(`successfully build ${repo}🎉`);
         });
     }
-    publish({ exec, parseJSON, app, prompt }, project) {
+    publish({ exec, parseJSON, app, prompt, bump, push_to_remote }, version, project) {
         return __awaiter(this, void 0, void 0, function* () {
-            const repo = project ? project : yield prompt('What do you want to build? [core, core_plugin, cli, plugin, app]');
+            const repo = project ? project : yield prompt('What do you want to publish? [core, core_plugin, cli, plugin, app]');
             const config = parseJSON(app.appDir + '/..' + '/config/config.json');
             yield exec(`npm publish ${config[repo]}`);
+            yield bump(version, `publish and release ${version}`, config[repo]);
+            yield push_to_remote(config[repo], 'origin', 'master');
         });
     }
     core(context) {
@@ -175,7 +177,7 @@ __decorate([
 __decorate([
     billy_core_1.Lane('publish'),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object, String]),
+    __metadata("design:paramtypes", [Object, String, String]),
     __metadata("design:returntype", Promise)
 ], DevKit.prototype, "publish", null);
 __decorate([

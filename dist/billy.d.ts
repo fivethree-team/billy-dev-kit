@@ -9,12 +9,14 @@ export declare class DevKit {
         app: any;
         prompt: any;
     }, project?: string): Promise<void>;
-    publish({ exec, parseJSON, app, prompt }: {
+    publish({ exec, parseJSON, app, prompt, bump, push_to_remote }: {
         exec: any;
         parseJSON: any;
         app: any;
         prompt: any;
-    }, project?: string): Promise<void>;
+        bump: any;
+        push_to_remote: any;
+    }, version: string, project?: string): Promise<void>;
     core(context: any): Promise<void>;
     core_plugin(context: any): Promise<void>;
     cli(context: any): Promise<void>;

@@ -1,7 +1,7 @@
 {
-    "core": "../billy-core",
-    "core_plugin": "../billy-core-plugin",
-    "cli": "../billy-cli",
-    "plugin": "../billy-plugin",
-    "app": "../billy-app"
+    "core": "/Users/garygrossgarten/dev/things/billy/billy-core",
+    "core_plugin": "/Users/garygrossgarten/dev/things/billy/billy-core-plugin",
+    "cli": "/Users/garygrossgarten/dev/things/billy/billy-cli",
+    "plugin": "/Users/garygrossgarten/dev/things/billy/billy-plugin",
+    "app": "/Users/garygrossgarten/dev/things/billy/billy-app"
 }
