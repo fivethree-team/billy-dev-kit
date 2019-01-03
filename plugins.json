@@ -1,5 +1,6 @@
 {
     "plugins": [
-        "@fivethree/billy-plugin-core"
+        "@fivethree/billy-plugin-core",
+        "@garygrossgarten/billy-plugin-twitter"
     ]
 }

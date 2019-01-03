@@ -21,7 +21,7 @@ const billy_core_1 = require("@fivethree/billy-core");
 let DevKit = class DevKit {
     release(context) {
         return __awaiter(this, void 0, void 0, function* () {
-            const { print, parseJSON, prompt, writeJSON, app, core, core_plugin, cli, exampleApp, plugin, publish, gitClean, bump, push_to_remote } = context;
+            const { print, parseJSON, prompt, writeJSON, app, core, core_plugin, cli, exampleApp, plugin, publish, gitClean } = context;
             print('reading config file...⌛');
             const config = parseJSON(app.appDir + '/..' + '/config/config.json');
             const status = {};
@@ -116,13 +116,13 @@ let DevKit = class DevKit {
             print(`successfully build ${repo}🎉`);
         });
     }
-    publish({ exec, parseJSON, app, prompt, bump, push_to_remote }, version, project) {
+    publish({ exec, parseJSON, app, prompt, bump, push }, version, project) {
         return __awaiter(this, void 0, void 0, function* () {
             const repo = project ? project : yield prompt('What do you want to publish? [core, core_plugin, cli, plugin, app]');
             const config = parseJSON(app.appDir + '/..' + '/config/config.json');
             yield exec(`npm publish ${config[repo]}`);
             yield bump(version, `publish and release ${version}`, config[repo]);
-            yield push_to_remote(config[repo], 'origin', 'master');
+            yield push(config[repo], 'origin', 'master');
         });
     }
     core(context) {
@@ -153,6 +153,11 @@ let DevKit = class DevKit {
         return __awaiter(this, void 0, void 0, function* () {
             const { build } = context;
             yield build(context, 'plugin');
+        });
+    }
+    test(context) {
+        return __awaiter(this, void 0, void 0, function* () {
+            console.log(context);
         });
     }
 };
@@ -210,6 +215,12 @@ __decorate([
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
 ], DevKit.prototype, "plugin", null);
+__decorate([
+    billy_core_1.Lane('test'),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], DevKit.prototype, "test", null);
 DevKit = __decorate([
     billy_core_1.App()
 ], DevKit);

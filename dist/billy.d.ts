@@ -9,17 +9,11 @@ export declare class DevKit {
         app: any;
         prompt: any;
     }, project?: string): Promise<void>;
-    publish({ exec, parseJSON, app, prompt, bump, push_to_remote }: {
-        exec: any;
-        parseJSON: any;
-        app: any;
-        prompt: any;
-        bump: any;
-        push_to_remote: any;
-    }, version: string, project?: string): Promise<void>;
+    publish({ exec, parseJSON, app, prompt, bump, push }: LaneContext, version: string, project?: string): Promise<void>;
     core(context: any): Promise<void>;
     core_plugin(context: any): Promise<void>;
     cli(context: any): Promise<void>;
     exampleApp(context: any): Promise<void>;
     plugin(context: any): Promise<void>;
+    test(context: LaneContext): Promise<void>;
 }

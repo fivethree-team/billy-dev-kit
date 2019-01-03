@@ -7,7 +7,7 @@ export class DevKit {
     async release(context: LaneContext) {
         const { print, parseJSON, prompt, writeJSON, app, core,
             core_plugin, cli, exampleApp, plugin, publish,
-            gitClean, bump, push_to_remote } = context;
+            gitClean } = context;
         print('reading config file...⌛')
         const config = parseJSON(app.appDir + '/..' + '/config/config.json');
 
@@ -122,12 +122,12 @@ export class DevKit {
     }
 
     @Lane('publish')
-    async publish({ exec, parseJSON, app, prompt, bump, push_to_remote }, version: string, project?: string) {
+    async publish({ exec, parseJSON, app, prompt, bump, push }: LaneContext, version: string, project?: string) {
         const repo = project ? project : await prompt('What do you want to publish? [core, core_plugin, cli, plugin, app]')
         const config = parseJSON(app.appDir + '/..' + '/config/config.json');
         await exec(`npm publish ${config[repo]}`);
         await bump(version, `publish and release ${version}`, config[repo]);
-        await push_to_remote(config[repo], 'origin', 'master');
+        await push(config[repo], 'origin', 'master');
     }
 
     @Lane('rebuild core')
@@ -158,5 +158,10 @@ export class DevKit {
     async plugin(context) {
         const { build } = context;
         await build(context, 'plugin');
+    }
+
+    @Lane('test')
+    async test(context: LaneContext) {
+        console.log(context);
     }
 }
