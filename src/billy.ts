@@ -1,4 +1,4 @@
-import { App, Lane, LaneContext, Hook, Scheduled } from "@fivethree/billy-core";
+import { App, Lane, LaneContext, Hook, Scheduled, Webhook } from "@fivethree/billy-core";
 import { Application } from "./generated/application";
 
 @App()
@@ -162,8 +162,13 @@ export class DevKit extends Application {
     }
 
     @Lane('test')
-    async test() {
-        console.log('test');
+    async test(context: LaneContext) {
+        context.app.startWebhooks();
+    }
+
+    @Webhook('/push')
+    async webhookTest(context: LaneContext, body) {
+        console.log('successfully run webhook', body);
     }
 
     @Hook('AFTER_ALL')
@@ -194,6 +199,5 @@ export class DevKit extends Application {
     @Scheduled('*/1 * * * *')
     async scheduledLane() {
         this.print('scheduled lane!!!!!!');
-        await this.test();
     }
 }

@@ -156,9 +156,14 @@ let DevKit = class DevKit extends application_1.Application {
             this.print('scheduled jobs', JSON.stringify(jobs));
         });
     }
-    test() {
+    test(context) {
         return __awaiter(this, void 0, void 0, function* () {
-            console.log('test');
+            context.app.startWebhooks();
+        });
+    }
+    webhookTest(context, body) {
+        return __awaiter(this, void 0, void 0, function* () {
+            console.log('successfully run webhook', body);
         });
     }
     afterAll() {
@@ -187,7 +192,6 @@ let DevKit = class DevKit extends application_1.Application {
     scheduledLane() {
         return __awaiter(this, void 0, void 0, function* () {
             this.print('scheduled lane!!!!!!');
-            yield this.test();
         });
     }
 };
@@ -254,9 +258,15 @@ __decorate([
 __decorate([
     billy_core_1.Lane('test'),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", []),
+    __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
 ], DevKit.prototype, "test", null);
+__decorate([
+    billy_core_1.Webhook('/push'),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, Object]),
+    __metadata("design:returntype", Promise)
+], DevKit.prototype, "webhookTest", null);
 __decorate([
     billy_core_1.Hook('AFTER_ALL'),
     __metadata("design:type", Function),
