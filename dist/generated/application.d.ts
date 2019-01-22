@@ -1,5 +1,6 @@
 import { CorePlugin } from '@fivethree/billy-plugin-core';
-export interface Application extends CorePlugin {
+import { NgrokPlugin } from '@fivethree/billy-plugin-ngrok';
+export interface Application extends CorePlugin, NgrokPlugin {
 }
 export declare class Application {
     this: any;

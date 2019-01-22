@@ -12,7 +12,7 @@ export declare class DevKit extends Application {
     plugin(context: any): Promise<void>;
     schedule(context: LaneContext): Promise<void>;
     test(context: LaneContext): Promise<void>;
-    webhookTest(context: any, body: any): Promise<void>;
+    webhookTest(context: LaneContext, body: any): Promise<void>;
     afterAll(): Promise<void>;
     beforeAll(): Promise<void>;
     beforeEach(): Promise<void>;

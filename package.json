@@ -22,6 +22,7 @@
     "author": "garygrossgarten",
     "license": "MIT",
     "devDependencies": {
+        "axios": "^0.18.0",
         "@types/node": "^10.12.18",
         "nodemon": "^1.18.9",
         "ts-node": "^7.0.1",
@@ -29,11 +30,13 @@
     },
     "dependencies": {
         "@fivethree/billy-core": "../billy-core",
+        "@fivethree/billy-plugin-ngrok": "../billy-plugin-ngrok",
         "@fivethree/billy-plugin-core": "../billy-core-plugin"
     },
     "billy": {
         "plugins": [
-            "@fivethree/billy-plugin-core"
+            "@fivethree/billy-plugin-core",
+            "@fivethree/billy-plugin-ngrok"
         ]
     }
 }

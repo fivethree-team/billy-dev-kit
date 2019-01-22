@@ -76,7 +76,6 @@ export class DevKit extends Application {
     async setup(context: LaneContext) {
         this.print('reading config file...⌛')
         const config = this.parseJSON(context.app.appDir + '/config/config.json');
-
         const core_pluginC = this.parseJSON(config.core_plugin + '/package.json');
         const cliC = this.parseJSON(config.cli + '/package.json');
         const pluginC = this.parseJSON(config.plugin + '/package.json');
@@ -164,9 +163,13 @@ export class DevKit extends Application {
     @Lane('test')
     async test(context: LaneContext) {
         context.app.startWebhooks();
+        const url = await this.tunnel();
+        const res = await this.updateGithubWebhook(url, 'fivethree-team', 'billy-dev-kit', 80641659);
+        console.log(res, url);
     }
 
     @Webhook('/push')
+    @Lane('cool webhook lane')
     async webhookTest(context: LaneContext, body) {
         console.log('successfully run webhook', body);
     }

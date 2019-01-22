@@ -159,6 +159,9 @@ let DevKit = class DevKit extends application_1.Application {
     test(context) {
         return __awaiter(this, void 0, void 0, function* () {
             context.app.startWebhooks();
+            const url = yield this.tunnel();
+            const res = yield this.updateGithubWebhook(url, 'fivethree-team', 'billy-dev-kit', 80641659);
+            console.log(res, url);
         });
     }
     webhookTest(context, body) {
@@ -263,6 +266,7 @@ __decorate([
 ], DevKit.prototype, "test", null);
 __decorate([
     billy_core_1.Webhook('/push'),
+    billy_core_1.Lane('cool webhook lane'),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object, Object]),
     __metadata("design:returntype", Promise)
