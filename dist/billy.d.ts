@@ -1,19 +1,21 @@
 import { LaneContext } from "@fivethree/billy-core";
-export declare class DevKit {
+import { Application } from "./generated/application";
+export declare class DevKit extends Application {
     release(context: LaneContext): Promise<void>;
     setup(context: LaneContext): Promise<void>;
-    build({ print, exec, parseJSON, app, prompt }: {
-        print: any;
-        exec: any;
-        parseJSON: any;
-        app: any;
-        prompt: any;
-    }, project?: string): Promise<void>;
-    publish({ exec, parseJSON, app, prompt, bump, push }: LaneContext, version: string, project?: string): Promise<void>;
-    core(context: any): Promise<void>;
+    build(context: LaneContext, project?: string): Promise<void>;
+    publish(context: LaneContext, version: string, project?: string): Promise<void>;
+    core(context: LaneContext): Promise<void>;
     core_plugin(context: any): Promise<void>;
     cli(context: any): Promise<void>;
     exampleApp(context: any): Promise<void>;
     plugin(context: any): Promise<void>;
-    test(context: LaneContext): Promise<void>;
+    schedule(context: LaneContext): Promise<void>;
+    test(): Promise<void>;
+    afterAll(): Promise<void>;
+    beforeAll(): Promise<void>;
+    beforeEach(): Promise<void>;
+    afterEach(): Promise<void>;
+    onError(err: Error, context: LaneContext): void;
+    scheduledLane(): Promise<void>;
 }

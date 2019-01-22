@@ -18,146 +18,176 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const billy_core_1 = require("@fivethree/billy-core");
-let DevKit = class DevKit {
+const application_1 = require("./generated/application");
+let DevKit = class DevKit extends application_1.Application {
     release(context) {
         return __awaiter(this, void 0, void 0, function* () {
-            const { print, parseJSON, prompt, writeJSON, app, core, core_plugin, cli, exampleApp, plugin, publish, gitClean } = context;
-            print('reading config file...⌛');
-            const config = parseJSON(app.appDir + '/..' + '/config/config.json');
+            this.print('reading config file...⌛');
+            const config = this.parseJSON(context.app.appDir + '/config/config.json');
             const status = {};
-            status.core = yield gitClean(config.core);
-            status.core_plugin = yield gitClean(config.core_plugin);
-            status.cli = yield gitClean(config.cli);
-            status.plugin = yield gitClean(config.plugin);
-            status.app = yield gitClean(config.app);
+            status.core = yield this.gitClean(config.core);
+            status.core_plugin = yield this.gitClean(config.core_plugin);
+            status.cli = yield this.gitClean(config.cli);
+            status.plugin = yield this.gitClean(config.plugin);
+            status.app = yield this.gitClean(config.app);
             if (!(status.core && status.core_plugin && status.cli && status.plugin && status.app)) {
-                print('git status not clean:');
-                print(status);
+                this.print('git status not clean:');
+                this.print(status);
                 console.error('please push all your local changes before release!');
                 return;
             }
-            const coreC = parseJSON(config.core + '/package.json');
-            const core_pluginC = parseJSON(config.core_plugin + '/package.json');
-            const cliC = parseJSON(config.cli + '/package.json');
-            const pluginC = parseJSON(config.plugin + '/package.json');
-            const appC = parseJSON(config.app + '/package.json');
-            const version = yield prompt(`enter version  | current: ${coreC.version}`);
+            const coreC = this.parseJSON(config.core + '/package.json');
+            const core_pluginC = this.parseJSON(config.core_plugin + '/package.json');
+            const cliC = this.parseJSON(config.cli + '/package.json');
+            const pluginC = this.parseJSON(config.plugin + '/package.json');
+            const appC = this.parseJSON(config.app + '/package.json');
+            const version = yield this.prompt(`enter version  | current: ${coreC.version}`);
             if (version) {
-                print('starting release! 🚀');
+                this.print('starting release! 🚀');
                 coreC.version = version;
-                writeJSON(config.core + '/package.json', coreC);
-                yield core(context);
-                yield publish(context, version, 'core');
+                this.writeJSON(config.core + '/package.json', coreC);
+                yield this.core(context);
+                yield this.publish(context, version, 'core');
                 core_pluginC.version = version;
                 core_pluginC.devDependencies['@fivethree/billy-core'] = version;
-                writeJSON(config.core_plugin + '/package.json', core_pluginC);
-                yield core_plugin(context);
-                yield publish(context, version, 'core_plugin');
+                this.writeJSON(config.core_plugin + '/package.json', core_pluginC);
+                yield this.core_plugin(context);
+                yield this.publish(context, version, 'core_plugin');
                 cliC.version = version;
                 cliC.dependencies['@fivethree/billy-core'] = version;
                 cliC.dependencies['@fivethree/billy-plugin-core'] = version;
-                writeJSON(config.cli + '/package.json', cliC);
-                yield cli(context);
-                yield publish(context, version, 'cli');
+                this.writeJSON(config.cli + '/package.json', cliC);
+                yield this.cli(context);
+                yield this.publish(context, version, 'cli');
                 pluginC.version = version;
                 pluginC.devDependencies['@fivethree/billy-core'] = version;
-                writeJSON(config.plugin + '/package.json', pluginC);
-                yield plugin(context);
-                yield publish(context, version, 'plugin');
+                this.writeJSON(config.plugin + '/package.json', pluginC);
+                yield this.plugin(context);
+                yield this.publish(context, version, 'plugin');
                 appC.version = version;
                 appC.dependencies['@fivethree/billy-core'] = version;
                 appC.dependencies['@fivethree/billy-plugin-core'] = version;
-                writeJSON(config.app + '/package.json', appC);
-                yield exampleApp(context);
-                yield publish(context, version, 'app');
-                print(`Done publishing version ${version}! ✅`);
+                this.writeJSON(config.app + '/package.json', appC);
+                yield this.exampleApp(context);
+                yield this.publish(context, version, 'app');
+                this.print(`Done publishing version ${version}! ✅`);
             }
             else {
-                print('no version specified');
+                this.print('no version specified');
             }
         });
     }
     setup(context) {
         return __awaiter(this, void 0, void 0, function* () {
-            const { print, parseJSON, writeJSON, app, core, core_plugin, exampleApp, cli, plugin } = context;
-            print('reading config file...⌛');
-            const config = parseJSON(app.appDir + '/..' + '/config/config.json');
-            const core_pluginC = parseJSON(config.core_plugin + '/package.json');
-            const cliC = parseJSON(config.cli + '/package.json');
-            const pluginC = parseJSON(config.plugin + '/package.json');
-            const appC = parseJSON(config.app + '/package.json');
-            print('setup dependencies... ⏳');
+            this.print('reading config file...⌛');
+            const config = this.parseJSON(context.app.appDir + '/config/config.json');
+            const core_pluginC = this.parseJSON(config.core_plugin + '/package.json');
+            const cliC = this.parseJSON(config.cli + '/package.json');
+            const pluginC = this.parseJSON(config.plugin + '/package.json');
+            const appC = this.parseJSON(config.app + '/package.json');
+            this.print('setup dependencies... ⏳');
             core_pluginC.devDependencies['@fivethree/billy-core'] = `file:${config.core}`;
             cliC.dependencies['@fivethree/billy-core'] = `file:${config.core}`;
             cliC.dependencies['@fivethree/billy-plugin-core'] = `file:${config.core_plugin}`;
             pluginC.devDependencies['@fivethree/billy-core'] = `file:${config.core}`;
             appC.dependencies['@fivethree/billy-core'] = `file:${config.core}`;
             appC.dependencies['@fivethree/billy-plugin-core'] = `file:${config.core_plugin}`;
-            writeJSON(config.core_plugin + '/package.json', core_pluginC);
-            writeJSON(config.cli + '/package.json', cliC);
-            writeJSON(config.plugin + '/package.json', pluginC);
-            writeJSON(config.app + '/package.json', appC);
-            yield core(context);
-            yield core_plugin(context);
-            yield cli(context);
-            yield plugin(context);
-            yield exampleApp(context);
-            print(`Setup done! ✅`);
+            this.writeJSON(config.core_plugin + '/package.json', core_pluginC);
+            this.writeJSON(config.cli + '/package.json', cliC);
+            this.writeJSON(config.plugin + '/package.json', pluginC);
+            this.writeJSON(config.app + '/package.json', appC);
+            yield this.core(context);
+            yield this.core_plugin(context);
+            yield this.cli(context);
+            yield this.plugin(context);
+            yield this.exampleApp(context);
+            this.print(`Setup done! ✅`);
         });
     }
-    build({ print, exec, parseJSON, app, prompt }, project) {
+    build(context, project) {
         return __awaiter(this, void 0, void 0, function* () {
-            const repo = project ? project : yield prompt('What do you want to build? [core, core_plugin, cli, plugin, app]');
-            const config = parseJSON(app.appDir + '/..' + '/config/config.json');
-            print(`building ${repo} ... ⏳`);
-            yield exec(`rm -rf ${config[repo]}/node_modules ${config[repo]}/package-lock.json`);
-            yield exec(`npm install --prefix ${config[repo]}`);
-            yield exec(`${config[repo]}/node_modules/.bin/tsc -p ${config[repo]}`);
-            print(`successfully build ${repo}🎉`);
+            console.log('build project', project);
+            const repo = project ? project : yield this.prompt('What do you want to build? [core, core_plugin, cli, plugin, app]');
+            const config = this.parseJSON(context.app.appDir + '/config/config.json');
+            this.print(`building ${repo} ... ⏳`);
+            yield this.exec(`rm -rf ${config[repo]}/node_modules ${config[repo]}/package-lock.json`);
+            yield this.exec(`npm install --prefix ${config[repo]}`);
+            yield this.exec(`${config[repo]}/node_modules/.bin/tsc -p ${config[repo]}`);
+            this.print(`successfully build ${repo}🎉`);
         });
     }
-    publish({ exec, parseJSON, app, prompt, bump, push }, version, project) {
+    publish(context, version, project) {
         return __awaiter(this, void 0, void 0, function* () {
-            const repo = project ? project : yield prompt('What do you want to publish? [core, core_plugin, cli, plugin, app]');
-            const config = parseJSON(app.appDir + '/..' + '/config/config.json');
-            yield exec(`npm publish ${config[repo]}`);
-            yield bump(version, `publish and release ${version}`, config[repo]);
-            yield push(config[repo], 'origin', 'master');
+            const repo = project ? project : yield this.prompt('What do you want to publish? [core, core_plugin, cli, plugin, app]');
+            const config = this.parseJSON(context.app.appDir + '/config/config.json');
+            yield this.exec(`npm publish ${config[repo]}`);
+            yield this.bump(version, `publish and release ${version}`, config[repo]);
+            yield this.push(config[repo], 'origin', 'master');
         });
     }
     core(context) {
         return __awaiter(this, void 0, void 0, function* () {
-            const { build } = context;
-            yield build(context, 'core');
+            yield this.build(context, 'core');
         });
     }
     core_plugin(context) {
         return __awaiter(this, void 0, void 0, function* () {
-            const { build } = context;
-            yield build(context, 'core_plugin');
+            yield this.build(context, 'core_plugin');
         });
     }
     cli(context) {
         return __awaiter(this, void 0, void 0, function* () {
-            const { build } = context;
-            yield build(context, 'cli');
+            yield this.build(context, 'cli');
         });
     }
     exampleApp(context) {
         return __awaiter(this, void 0, void 0, function* () {
-            const { build } = context;
-            yield build(context, 'app');
+            yield this.build(context, 'app');
         });
     }
     plugin(context) {
         return __awaiter(this, void 0, void 0, function* () {
-            const { build } = context;
-            yield build(context, 'plugin');
+            yield this.build(context, 'plugin');
         });
     }
-    test(context) {
+    schedule(context) {
         return __awaiter(this, void 0, void 0, function* () {
-            console.log(context);
+            const jobs = yield context.app.schedule();
+            this.print('scheduled jobs', JSON.stringify(jobs));
+        });
+    }
+    test() {
+        return __awaiter(this, void 0, void 0, function* () {
+            console.log('test');
+        });
+    }
+    afterAll() {
+        return __awaiter(this, void 0, void 0, function* () {
+            console.log('after all');
+        });
+    }
+    beforeAll() {
+        return __awaiter(this, void 0, void 0, function* () {
+            console.log('before all');
+        });
+    }
+    beforeEach() {
+        return __awaiter(this, void 0, void 0, function* () {
+            console.log('before each');
+        });
+    }
+    afterEach() {
+        return __awaiter(this, void 0, void 0, function* () {
+            console.log('after each');
+        });
+    }
+    onError(err, context) {
+        console.error(`error happened in lane ${context.lane.name}`, err.message);
+    }
+    scheduledLane() {
+        return __awaiter(this, void 0, void 0, function* () {
+            this.print('scheduled lane!!!!!!');
+            yield this.test();
         });
     }
 };
@@ -216,11 +246,53 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], DevKit.prototype, "plugin", null);
 __decorate([
-    billy_core_1.Lane('test'),
+    billy_core_1.Lane('schedule all'),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
+], DevKit.prototype, "schedule", null);
+__decorate([
+    billy_core_1.Lane('test'),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", Promise)
 ], DevKit.prototype, "test", null);
+__decorate([
+    billy_core_1.Hook('AFTER_ALL'),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", Promise)
+], DevKit.prototype, "afterAll", null);
+__decorate([
+    billy_core_1.Hook('BEFORE_ALL'),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", Promise)
+], DevKit.prototype, "beforeAll", null);
+__decorate([
+    billy_core_1.Hook('BEFORE_EACH'),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", Promise)
+], DevKit.prototype, "beforeEach", null);
+__decorate([
+    billy_core_1.Hook('AFTER_EACH'),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", Promise)
+], DevKit.prototype, "afterEach", null);
+__decorate([
+    billy_core_1.Hook('ERROR'),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Error, Object]),
+    __metadata("design:returntype", void 0)
+], DevKit.prototype, "onError", null);
+__decorate([
+    billy_core_1.Scheduled('*/1 * * * *'),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", Promise)
+], DevKit.prototype, "scheduledLane", null);
 DevKit = __decorate([
     billy_core_1.App()
 ], DevKit);
