@@ -165,7 +165,6 @@ export class DevKit extends Application {
         context.app.startWebhooks();
         const url = await this.tunnel();
         const res = await this.updateGithubWebhook(url + '/push', 'fivethree-team', 'billy-dev-kit', 80641659);
-        console.log(res, url);
     }
 
     @Webhook('/push')

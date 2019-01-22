@@ -161,7 +161,6 @@ let DevKit = class DevKit extends application_1.Application {
             context.app.startWebhooks();
             const url = yield this.tunnel();
             const res = yield this.updateGithubWebhook(url + '/push', 'fivethree-team', 'billy-dev-kit', 80641659);
-            console.log(res, url);
         });
     }
     webhookTest(context, body) {
