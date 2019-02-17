@@ -1,6 +1,6 @@
 {
     "name": "@fivethree/billy-dev-kit",
-    "version": "0.6.1",
+    "version": "0.8.1",
     "description": "dev kit for billy.",
     "main": "dist/generated/index.js",
     "scripts": {
@@ -29,14 +29,12 @@
         "typescript": "^3.2.2"
     },
     "dependencies": {
-        "@fivethree/billy-core": "../billy-core",
-        "@fivethree/billy-plugin-ngrok": "../billy-plugin-ngrok",
-        "@fivethree/billy-plugin-core": "../billy-core-plugin"
+        "@fivethree/billy-core": "0.8.1",
+        "@fivethree/billy-plugin-core": "0.8.1"
     },
     "billy": {
         "plugins": [
-            "@fivethree/billy-plugin-core",
-            "@fivethree/billy-plugin-ngrok"
+            "@fivethree/billy-plugin-core"
         ]
     }
 }

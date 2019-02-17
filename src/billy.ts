@@ -1,14 +1,23 @@
-import { App, Lane, LaneContext, Hook, Scheduled, Webhook } from "@fivethree/billy-core";
+import { App, Lane, LaneContext, param, context, ParamOptions } from "@fivethree/billy-core";
 import { Application } from "./generated/application";
+
+const projectOptions: ParamOptions = {
+    name: 'project',
+    description: 'What do you want to build? [core, core_plugin, cli, plugin, app]',
+}
+const versionOptions: ParamOptions = {
+    name: 'versionCode',
+    description: 'Please enter the version [XXX.XXX.XXX]'
+}
 
 @App()
 export class DevKit extends Application {
 
     @Lane('release a billy version')
-    async release(context: LaneContext) {
+    async release(@context() context: LaneContext) {
 
         this.print('reading config file...⌛')
-        const config = this.parseJSON(context.app.appDir + '/config/config.json');
+        const config = this.parseJSON(context.directory + '/config/config.json');
 
         const status: any = {};
         status.core = await this.gitClean(config.core);
@@ -72,10 +81,43 @@ export class DevKit extends Application {
         }
     }
 
-    @Lane('setup development environment')
-    async setup(context: LaneContext) {
+    @Lane('build and commit local changes')
+    async commitAll(@context() context: LaneContext) {
+
         this.print('reading config file...⌛')
-        const config = this.parseJSON(context.app.appDir + '/config/config.json');
+        const config = this.parseJSON(context.directory + '/config/config.json');
+
+        const type = await this.prompt('enter commit type | type(scope): message');
+        const scope = await this.prompt('enter commit scope | type(scope): message');
+        const message = await this.prompt('enter commit message | type(scope): message');
+        await this.commit(type, scope, message, config.core);
+        await this.commit(type, scope, message, config.core_plugin);
+        await this.commit(type, scope, message, config.cli);
+        await this.commit(type, scope, message, config.plugin);
+        await this.commit(type, scope, message, config.app);
+
+        this.print(`Done commiting`);
+
+    }
+
+    @Lane('build and commit local changes')
+    async pushAll(@context() context: LaneContext) {
+
+        this.print('reading config file...⌛')
+        const config = this.parseJSON(context.directory + '/config/config.json');
+
+        this.push(config.core);
+        this.push(config.core_plugin);
+        this.push(config.cli);
+        this.push(config.plugin);
+        this.push(config.app);
+
+    }
+
+    @Lane('setup development environment')
+    async setup(@context() context: LaneContext) {
+        this.print('reading config file...⌛')
+        const config = this.parseJSON(context.directory + '/config/config.json');
         const core_pluginC = this.parseJSON(config.core_plugin + '/package.json');
         const cliC = this.parseJSON(config.cli + '/package.json');
         const pluginC = this.parseJSON(config.plugin + '/package.json');
@@ -107,99 +149,48 @@ export class DevKit extends Application {
     }
 
     @Lane('build')
-    async build(context: LaneContext, project?: string) {
+    async build(@context() context: LaneContext, @param(projectOptions) project: string) {
         console.log('build project', project);
-        const repo = project ? project : await this.prompt('What do you want to build? [core, core_plugin, cli, plugin, app]')
-        const config = this.parseJSON(context.app.appDir + '/config/config.json');
+        const config = this.parseJSON(context.directory + '/config/config.json');
 
-        this.print(`building ${repo} ... ⏳`)
-        await this.exec(`rm -rf ${config[repo]}/node_modules ${config[repo]}/package-lock.json`)
-        await this.exec(`npm install --prefix ${config[repo]}`)
-        await this.exec(`${config[repo]}/node_modules/.bin/tsc -p ${config[repo]}`)
-        this.print(`successfully build ${repo}🎉`)
+        this.print(`building ${project} ... ⏳`)
+        await this.exec(`rm -rf ${config[project]}/node_modules ${config[project]}/package-lock.json`)
+        await this.exec(`npm install --prefix ${config[project]}`)
+        await this.exec(`${config[project]}/node_modules/.bin/tsc -p ${config[project]}`)
+        this.print(`successfully build ${project}🎉`)
     }
 
     @Lane('publish')
-    async publish(context: LaneContext, version: string, project?: string) {
-        const repo = project ? project : await this.prompt('What do you want to publish? [core, core_plugin, cli, plugin, app]')
-        const config = this.parseJSON(context.app.appDir + '/config/config.json');
-        await this.exec(`npm publish ${config[repo]}`);
-        await this.bump(version, `publish and release ${version}`, config[repo]);
-        await this.push(config[repo], 'origin', 'master');
+    async publish(@context() context: LaneContext, @param(versionOptions) version: string, @param(projectOptions) project: string) {
+        const config = this.parseJSON(context.directory + '/config/config.json');
+        await this.exec(`npm publish ${config[project]}`);
+        await this.bump(version, `publish and release ${version}`, config[project]);
+        await this.push(config[project], 'origin', 'master');
     }
 
     @Lane('rebuild core')
-    async core(context: LaneContext) {
+    async core(@context() context: LaneContext) {
 
         await this.build(context, 'core');
     }
 
     @Lane('rebuild core plugin')
-    async core_plugin(context) {
+    async core_plugin(@context() context: LaneContext) {
         await this.build(context, 'core_plugin');
     }
 
     @Lane('rebuild cli')
-    async cli(context) {
+    async cli(@context() context: LaneContext) {
         await this.build(context, 'cli');
     }
 
     @Lane('rebuild app')
-    async exampleApp(context) {
+    async exampleApp(@context() context: LaneContext) {
         await this.build(context, 'app');
     }
 
     @Lane('rebuild plugin')
-    async plugin(context) {
+    async plugin(@context() context: LaneContext) {
         await this.build(context, 'plugin');
-    }
-
-    @Lane('schedule all')
-    async schedule(context: LaneContext) {
-        const jobs = await context.app.schedule();
-        this.print('scheduled jobs', JSON.stringify(jobs));
-    }
-
-    @Lane('test')
-    async test(context: LaneContext) {
-        context.app.startWebhooks();
-        const url = await this.tunnel();
-        const res = await this.updateGithubWebhook(url + '/push', 'fivethree-team', 'billy-dev-kit', 80641659);
-    }
-
-    @Webhook('/push')
-    @Lane('cool webhook lane')
-    async webhookTest(context: LaneContext, body) {
-        console.log('successfully run webhook', body);
-    }
-
-    @Hook('AFTER_ALL')
-    async afterAll() {
-        console.log('after all');
-    }
-
-    @Hook('BEFORE_ALL')
-    async beforeAll() {
-        console.log('before all');
-    }
-
-    @Hook('BEFORE_EACH')
-    async beforeEach() {
-        console.log('before each');
-    }
-
-    @Hook('AFTER_EACH')
-    async afterEach() {
-        console.log('after each');
-    }
-
-    @Hook('ERROR')
-    onError(err: Error, context: LaneContext) {
-        console.error(`error happened in lane ${context.lane.name}`, err.message);
-    }
-
-    @Scheduled('*/1 * * * *')
-    async scheduledLane() {
-        this.print('scheduled lane!!!!!!');
     }
 }

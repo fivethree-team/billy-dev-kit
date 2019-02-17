@@ -8,6 +8,9 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
+var __param = (this && this.__param) || function (paramIndex, decorator) {
+    return function (target, key) { decorator(target, key, paramIndex); }
+};
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     return new (P || (P = Promise))(function (resolve, reject) {
         function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
@@ -19,11 +22,19 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 const billy_core_1 = require("@fivethree/billy-core");
 const application_1 = require("./generated/application");
+const projectOptions = {
+    name: 'project',
+    description: 'What do you want to build? [core, core_plugin, cli, plugin, app]',
+};
+const versionOptions = {
+    name: 'versionCode',
+    description: 'Please enter the version [XXX.XXX.XXX]'
+};
 let DevKit = class DevKit extends application_1.Application {
     release(context) {
         return __awaiter(this, void 0, void 0, function* () {
             this.print('reading config file...⌛');
-            const config = this.parseJSON(context.app.appDir + '/config/config.json');
+            const config = this.parseJSON(context.directory + '/config/config.json');
             const status = {};
             status.core = yield this.gitClean(config.core);
             status.core_plugin = yield this.gitClean(config.core_plugin);
@@ -77,10 +88,36 @@ let DevKit = class DevKit extends application_1.Application {
             }
         });
     }
+    commitAll(context) {
+        return __awaiter(this, void 0, void 0, function* () {
+            this.print('reading config file...⌛');
+            const config = this.parseJSON(context.directory + '/config/config.json');
+            const type = yield this.prompt('enter commit type | type(scope): message');
+            const scope = yield this.prompt('enter commit scope | type(scope): message');
+            const message = yield this.prompt('enter commit message | type(scope): message');
+            yield this.commit(type, scope, message, config.core);
+            yield this.commit(type, scope, message, config.core_plugin);
+            yield this.commit(type, scope, message, config.cli);
+            yield this.commit(type, scope, message, config.plugin);
+            yield this.commit(type, scope, message, config.app);
+            this.print(`Done commiting`);
+        });
+    }
+    pushAll(context) {
+        return __awaiter(this, void 0, void 0, function* () {
+            this.print('reading config file...⌛');
+            const config = this.parseJSON(context.directory + '/config/config.json');
+            this.push(config.core);
+            this.push(config.core_plugin);
+            this.push(config.cli);
+            this.push(config.plugin);
+            this.push(config.app);
+        });
+    }
     setup(context) {
         return __awaiter(this, void 0, void 0, function* () {
             this.print('reading config file...⌛');
-            const config = this.parseJSON(context.app.appDir + '/config/config.json');
+            const config = this.parseJSON(context.directory + '/config/config.json');
             const core_pluginC = this.parseJSON(config.core_plugin + '/package.json');
             const cliC = this.parseJSON(config.cli + '/package.json');
             const pluginC = this.parseJSON(config.plugin + '/package.json');
@@ -107,22 +144,20 @@ let DevKit = class DevKit extends application_1.Application {
     build(context, project) {
         return __awaiter(this, void 0, void 0, function* () {
             console.log('build project', project);
-            const repo = project ? project : yield this.prompt('What do you want to build? [core, core_plugin, cli, plugin, app]');
-            const config = this.parseJSON(context.app.appDir + '/config/config.json');
-            this.print(`building ${repo} ... ⏳`);
-            yield this.exec(`rm -rf ${config[repo]}/node_modules ${config[repo]}/package-lock.json`);
-            yield this.exec(`npm install --prefix ${config[repo]}`);
-            yield this.exec(`${config[repo]}/node_modules/.bin/tsc -p ${config[repo]}`);
-            this.print(`successfully build ${repo}🎉`);
+            const config = this.parseJSON(context.directory + '/config/config.json');
+            this.print(`building ${project} ... ⏳`);
+            yield this.exec(`rm -rf ${config[project]}/node_modules ${config[project]}/package-lock.json`);
+            yield this.exec(`npm install --prefix ${config[project]}`);
+            yield this.exec(`${config[project]}/node_modules/.bin/tsc -p ${config[project]}`);
+            this.print(`successfully build ${project}🎉`);
         });
     }
     publish(context, version, project) {
         return __awaiter(this, void 0, void 0, function* () {
-            const repo = project ? project : yield this.prompt('What do you want to publish? [core, core_plugin, cli, plugin, app]');
-            const config = this.parseJSON(context.app.appDir + '/config/config.json');
-            yield this.exec(`npm publish ${config[repo]}`);
-            yield this.bump(version, `publish and release ${version}`, config[repo]);
-            yield this.push(config[repo], 'origin', 'master');
+            const config = this.parseJSON(context.directory + '/config/config.json');
+            yield this.exec(`npm publish ${config[project]}`);
+            yield this.bump(version, `publish and release ${version}`, config[project]);
+            yield this.push(config[project], 'origin', 'master');
         });
     }
     core(context) {
@@ -150,162 +185,84 @@ let DevKit = class DevKit extends application_1.Application {
             yield this.build(context, 'plugin');
         });
     }
-    schedule(context) {
-        return __awaiter(this, void 0, void 0, function* () {
-            const jobs = yield context.app.schedule();
-            this.print('scheduled jobs', JSON.stringify(jobs));
-        });
-    }
-    test(context) {
-        return __awaiter(this, void 0, void 0, function* () {
-            context.app.startWebhooks();
-            const url = yield this.tunnel();
-            const res = yield this.updateGithubWebhook(url + '/push', 'fivethree-team', 'billy-dev-kit', 80641659);
-        });
-    }
-    webhookTest(context, body) {
-        return __awaiter(this, void 0, void 0, function* () {
-            console.log('successfully run webhook', body);
-        });
-    }
-    afterAll() {
-        return __awaiter(this, void 0, void 0, function* () {
-            console.log('after all');
-        });
-    }
-    beforeAll() {
-        return __awaiter(this, void 0, void 0, function* () {
-            console.log('before all');
-        });
-    }
-    beforeEach() {
-        return __awaiter(this, void 0, void 0, function* () {
-            console.log('before each');
-        });
-    }
-    afterEach() {
-        return __awaiter(this, void 0, void 0, function* () {
-            console.log('after each');
-        });
-    }
-    onError(err, context) {
-        console.error(`error happened in lane ${context.lane.name}`, err.message);
-    }
-    scheduledLane() {
-        return __awaiter(this, void 0, void 0, function* () {
-            this.print('scheduled lane!!!!!!');
-        });
-    }
 };
 __decorate([
     billy_core_1.Lane('release a billy version'),
+    __param(0, billy_core_1.context()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
 ], DevKit.prototype, "release", null);
 __decorate([
+    billy_core_1.Lane('build and commit local changes'),
+    __param(0, billy_core_1.context()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], DevKit.prototype, "commitAll", null);
+__decorate([
+    billy_core_1.Lane('build and commit local changes'),
+    __param(0, billy_core_1.context()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], DevKit.prototype, "pushAll", null);
+__decorate([
     billy_core_1.Lane('setup development environment'),
+    __param(0, billy_core_1.context()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
 ], DevKit.prototype, "setup", null);
 __decorate([
     billy_core_1.Lane('build'),
+    __param(0, billy_core_1.context()), __param(1, billy_core_1.param(projectOptions)),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object, String]),
     __metadata("design:returntype", Promise)
 ], DevKit.prototype, "build", null);
 __decorate([
     billy_core_1.Lane('publish'),
+    __param(0, billy_core_1.context()), __param(1, billy_core_1.param(versionOptions)), __param(2, billy_core_1.param(projectOptions)),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object, String, String]),
     __metadata("design:returntype", Promise)
 ], DevKit.prototype, "publish", null);
 __decorate([
     billy_core_1.Lane('rebuild core'),
+    __param(0, billy_core_1.context()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
 ], DevKit.prototype, "core", null);
 __decorate([
     billy_core_1.Lane('rebuild core plugin'),
+    __param(0, billy_core_1.context()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
 ], DevKit.prototype, "core_plugin", null);
 __decorate([
     billy_core_1.Lane('rebuild cli'),
+    __param(0, billy_core_1.context()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
 ], DevKit.prototype, "cli", null);
 __decorate([
     billy_core_1.Lane('rebuild app'),
+    __param(0, billy_core_1.context()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
 ], DevKit.prototype, "exampleApp", null);
 __decorate([
     billy_core_1.Lane('rebuild plugin'),
+    __param(0, billy_core_1.context()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
 ], DevKit.prototype, "plugin", null);
-__decorate([
-    billy_core_1.Lane('schedule all'),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object]),
-    __metadata("design:returntype", Promise)
-], DevKit.prototype, "schedule", null);
-__decorate([
-    billy_core_1.Lane('test'),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object]),
-    __metadata("design:returntype", Promise)
-], DevKit.prototype, "test", null);
-__decorate([
-    billy_core_1.Webhook('/push'),
-    billy_core_1.Lane('cool webhook lane'),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object, Object]),
-    __metadata("design:returntype", Promise)
-], DevKit.prototype, "webhookTest", null);
-__decorate([
-    billy_core_1.Hook('AFTER_ALL'),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", []),
-    __metadata("design:returntype", Promise)
-], DevKit.prototype, "afterAll", null);
-__decorate([
-    billy_core_1.Hook('BEFORE_ALL'),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", []),
-    __metadata("design:returntype", Promise)
-], DevKit.prototype, "beforeAll", null);
-__decorate([
-    billy_core_1.Hook('BEFORE_EACH'),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", []),
-    __metadata("design:returntype", Promise)
-], DevKit.prototype, "beforeEach", null);
-__decorate([
-    billy_core_1.Hook('AFTER_EACH'),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", []),
-    __metadata("design:returntype", Promise)
-], DevKit.prototype, "afterEach", null);
-__decorate([
-    billy_core_1.Hook('ERROR'),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Error, Object]),
-    __metadata("design:returntype", void 0)
-], DevKit.prototype, "onError", null);
-__decorate([
-    billy_core_1.Scheduled('*/1 * * * *'),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", []),
-    __metadata("design:returntype", Promise)
-], DevKit.prototype, "scheduledLane", null);
 DevKit = __decorate([
     billy_core_1.App()
 ], DevKit);
