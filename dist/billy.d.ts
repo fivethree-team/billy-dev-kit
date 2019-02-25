@@ -12,4 +12,7 @@ export declare class DevKit extends Application {
     cli(context: LaneContext): Promise<void>;
     exampleApp(context: LaneContext): Promise<void>;
     plugin(context: LaneContext): Promise<void>;
+    afterAll(context: LaneContext): void;
+    test(age: number): Promise<void>;
+    action(): void;
 }

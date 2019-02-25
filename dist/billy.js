@@ -185,6 +185,17 @@ let DevKit = class DevKit extends application_1.Application {
             yield this.build(context, 'plugin');
         });
     }
+    afterAll(context) {
+        context.api.printHistory();
+    }
+    test(age) {
+        return __awaiter(this, void 0, void 0, function* () {
+            this.action();
+        });
+    }
+    action() {
+        console.log('action');
+    }
 };
 __decorate([
     billy_core_1.Lane('release a billy version'),
@@ -263,6 +274,26 @@ __decorate([
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
 ], DevKit.prototype, "plugin", null);
+__decorate([
+    billy_core_1.Hook('AFTER_ALL'),
+    __param(0, billy_core_1.context()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", void 0)
+], DevKit.prototype, "afterAll", null);
+__decorate([
+    billy_core_1.Lane('testlane'),
+    __param(0, billy_core_1.param('age')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number]),
+    __metadata("design:returntype", Promise)
+], DevKit.prototype, "test", null);
+__decorate([
+    billy_core_1.Action('app action'),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", void 0)
+], DevKit.prototype, "action", null);
 DevKit = __decorate([
     billy_core_1.App()
 ], DevKit);

@@ -29,8 +29,8 @@
         "typescript": "^3.2.2"
     },
     "dependencies": {
-        "@fivethree/billy-core": "0.8.1",
-        "@fivethree/billy-plugin-core": "0.8.1"
+        "@fivethree/billy-core": "../billy-core",
+        "@fivethree/billy-plugin-core": "../billy-core-plugin"
     },
     "billy": {
         "plugins": [

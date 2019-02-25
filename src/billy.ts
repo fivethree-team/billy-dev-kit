@@ -1,4 +1,4 @@
-import { App, Lane, LaneContext, param, context, ParamOptions } from "@fivethree/billy-core";
+import { App, Lane, LaneContext, param, context, ParamOptions, Hook, Action } from "@fivethree/billy-core";
 import { Application } from "./generated/application";
 
 const projectOptions: ParamOptions = {
@@ -193,4 +193,21 @@ export class DevKit extends Application {
     async plugin(@context() context: LaneContext) {
         await this.build(context, 'plugin');
     }
+
+
+    @Hook('AFTER_ALL')
+    afterAll(@context() context: LaneContext) {
+        context.api.printHistory();
+    }
+
+    @Lane('testlane')
+    async test(@param('age') age: number) {
+        this.action();
+    }
+
+    @Action('app action')
+    action() {
+        console.log('action');
+    }
+
 }
