@@ -77,7 +77,7 @@ test
 ### 18. webhookTest
 cool webhook lane
 
-# Scheduled Lanes
+# Job Lanes
 Name|Schedule|Description|Note
 ---|---|---|---
 scheduledLane|*/1 * * * *|Every minute|

@@ -21,107 +21,101 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const billy_core_1 = require("@fivethree/billy-core");
-const application_1 = require("./generated/application");
-const projectOptions = {
-    name: 'project',
-    description: 'What do you want to build? [core, core_plugin, cli, plugin, app]',
-};
-const versionOptions = {
-    name: 'versionCode',
-    description: 'Please enter the version [XXX.XXX.XXX]'
-};
-let DevKit = class DevKit extends application_1.Application {
-    release(context) {
+const billy_plugin_core_1 = require("@fivethree/billy-plugin-core");
+const options_1 = require("./options");
+let DevKit = class DevKit {
+    release(context, dirty = false) {
         return __awaiter(this, void 0, void 0, function* () {
-            this.print('reading config file...⌛');
-            const config = this.parseJSON(context.directory + '/config/config.json');
+            yield this.print('reading config file...⌛');
+            const config = yield this.parseJSON(context.directory + '/src/config/config.json');
             const status = {};
-            status.core = yield this.gitClean(config.core);
-            status.core_plugin = yield this.gitClean(config.core_plugin);
-            status.cli = yield this.gitClean(config.cli);
-            status.plugin = yield this.gitClean(config.plugin);
-            status.app = yield this.gitClean(config.app);
-            if (!(status.core && status.core_plugin && status.cli && status.plugin && status.app)) {
-                this.print('git status not clean:');
-                this.print(status);
+            status.core = yield this.git_porcelain(config.core);
+            status.core_plugin = yield this.git_porcelain(config.core_plugin);
+            status.cli = yield this.git_porcelain(config.cli);
+            status.plugin = yield this.git_porcelain(config.plugin);
+            status.app = yield this.git_porcelain(config.app);
+            if (!dirty && !(status.core && status.core_plugin && status.cli && status.plugin && status.app)) {
+                yield this.print('git status not clean:');
+                yield this.print(status);
                 console.error('please push all your local changes before release!');
                 return;
             }
-            const coreC = this.parseJSON(config.core + '/package.json');
-            const core_pluginC = this.parseJSON(config.core_plugin + '/package.json');
-            const cliC = this.parseJSON(config.cli + '/package.json');
-            const pluginC = this.parseJSON(config.plugin + '/package.json');
-            const appC = this.parseJSON(config.app + '/package.json');
+            const coreC = yield this.parseJSON(config.core + '/package.json');
+            const core_pluginC = yield this.parseJSON(config.core_plugin + '/package.json');
+            const cliC = yield this.parseJSON(config.cli + '/package.json');
+            const pluginC = yield this.parseJSON(config.plugin + '/package.json');
+            const appC = yield this.parseJSON(config.app + '/package.json');
             const version = yield this.prompt(`enter version  | current: ${coreC.version}`);
             if (version) {
-                this.print('starting release! 🚀');
+                yield this.print('starting release! 🚀');
                 coreC.version = version;
-                this.writeJSON(config.core + '/package.json', coreC);
+                yield this.writeJSON(config.core + '/package.json', coreC);
                 yield this.core(context);
                 yield this.publish(context, version, 'core');
                 core_pluginC.version = version;
                 core_pluginC.devDependencies['@fivethree/billy-core'] = version;
-                this.writeJSON(config.core_plugin + '/package.json', core_pluginC);
+                yield this.writeJSON(config.core_plugin + '/package.json', core_pluginC);
                 yield this.core_plugin(context);
                 yield this.publish(context, version, 'core_plugin');
                 cliC.version = version;
                 cliC.dependencies['@fivethree/billy-core'] = version;
                 cliC.dependencies['@fivethree/billy-plugin-core'] = version;
-                this.writeJSON(config.cli + '/package.json', cliC);
+                yield this.writeJSON(config.cli + '/package.json', cliC);
                 yield this.cli(context);
                 yield this.publish(context, version, 'cli');
                 pluginC.version = version;
                 pluginC.devDependencies['@fivethree/billy-core'] = version;
-                this.writeJSON(config.plugin + '/package.json', pluginC);
+                yield this.writeJSON(config.plugin + '/package.json', pluginC);
                 yield this.plugin(context);
                 yield this.publish(context, version, 'plugin');
                 appC.version = version;
                 appC.dependencies['@fivethree/billy-core'] = version;
                 appC.dependencies['@fivethree/billy-plugin-core'] = version;
-                this.writeJSON(config.app + '/package.json', appC);
+                yield this.writeJSON(config.app + '/package.json', appC);
                 yield this.exampleApp(context);
                 yield this.publish(context, version, 'app');
-                this.print(`Done publishing version ${version}! ✅`);
+                yield this.print(`Done publishing version ${version}! ✅`);
             }
             else {
-                this.print('no version specified');
+                yield this.print('no version specified');
             }
         });
     }
     commitAll(context) {
         return __awaiter(this, void 0, void 0, function* () {
-            this.print('reading config file...⌛');
-            const config = this.parseJSON(context.directory + '/config/config.json');
+            yield this.print('reading config file...⌛');
+            const config = yield this.parseJSON(context.directory + '/src/config/config.json');
             const type = yield this.prompt('enter commit type | type(scope): message');
             const scope = yield this.prompt('enter commit scope | type(scope): message');
             const message = yield this.prompt('enter commit message | type(scope): message');
-            yield this.commit(type, scope, message, config.core);
-            yield this.commit(type, scope, message, config.core_plugin);
-            yield this.commit(type, scope, message, config.cli);
-            yield this.commit(type, scope, message, config.plugin);
-            yield this.commit(type, scope, message, config.app);
-            this.print(`Done commiting`);
+            yield this.git_commit(`${type}(${scope}): ${message}`, config.core);
+            yield this.git_commit(`${type}(${scope}): ${message}`, config.core_plugin);
+            yield this.git_commit(`${type}(${scope}): ${message}`, config.cli);
+            yield this.git_commit(`${type}(${scope}): ${message}`, config.plugin);
+            yield this.git_commit(`${type}(${scope}): ${message}`, config.app);
+            yield this.print(`Done commiting`);
         });
     }
     pushAll(context) {
         return __awaiter(this, void 0, void 0, function* () {
-            this.print('reading config file...⌛');
-            const config = this.parseJSON(context.directory + '/config/config.json');
-            this.push(config.core);
-            this.push(config.core_plugin);
-            this.push(config.cli);
-            this.push(config.plugin);
-            this.push(config.app);
+            yield this.print('reading config file...⌛');
+            const config = yield this.parseJSON(context.directory + '/src/config/config.json');
+            console.log('CONFIG', config);
+            yield this.git_push(config.core);
+            yield this.git_push(config.core_plugin);
+            yield this.git_push(config.cli);
+            yield this.git_push(config.plugin);
+            yield this.git_push(config.app);
         });
     }
     setup(context) {
         return __awaiter(this, void 0, void 0, function* () {
             this.print('reading config file...⌛');
-            const config = this.parseJSON(context.directory + '/config/config.json');
-            const core_pluginC = this.parseJSON(config.core_plugin + '/package.json');
-            const cliC = this.parseJSON(config.cli + '/package.json');
-            const pluginC = this.parseJSON(config.plugin + '/package.json');
-            const appC = this.parseJSON(config.app + '/package.json');
+            const config = yield this.parseJSON(context.directory + '/src/config/config.json');
+            const core_pluginC = yield this.parseJSON(config.core_plugin + '/package.json');
+            const cliC = yield this.parseJSON(config.cli + '/package.json');
+            const pluginC = yield this.parseJSON(config.plugin + '/package.json');
+            const appC = yield this.parseJSON(config.app + '/package.json');
             this.print('setup dependencies... ⏳');
             core_pluginC.devDependencies['@fivethree/billy-core'] = `file:${config.core}`;
             cliC.dependencies['@fivethree/billy-core'] = `file:${config.core}`;
@@ -129,172 +123,188 @@ let DevKit = class DevKit extends application_1.Application {
             pluginC.devDependencies['@fivethree/billy-core'] = `file:${config.core}`;
             appC.dependencies['@fivethree/billy-core'] = `file:${config.core}`;
             appC.dependencies['@fivethree/billy-plugin-core'] = `file:${config.core_plugin}`;
-            this.writeJSON(config.core_plugin + '/package.json', core_pluginC);
-            this.writeJSON(config.cli + '/package.json', cliC);
-            this.writeJSON(config.plugin + '/package.json', pluginC);
-            this.writeJSON(config.app + '/package.json', appC);
+            yield this.writeJSON(config.core_plugin + '/package.json', core_pluginC);
+            yield this.writeJSON(config.cli + '/package.json', cliC);
+            yield this.writeJSON(config.plugin + '/package.json', pluginC);
+            yield this.writeJSON(config.app + '/package.json', appC);
             yield this.core(context);
             yield this.core_plugin(context);
             yield this.cli(context);
             yield this.plugin(context);
             yield this.exampleApp(context);
-            this.print(`Setup done! ✅`);
+            yield this.print(`Setup done! ✅`);
         });
     }
-    build(context, project) {
+    build(context, project, dirty) {
         return __awaiter(this, void 0, void 0, function* () {
             console.log('build project', project);
-            const config = this.parseJSON(context.directory + '/config/config.json');
-            this.print(`building ${project} ... ⏳`);
-            yield this.exec(`rm -rf ${config[project]}/node_modules ${config[project]}/package-lock.json`);
-            yield this.exec(`npm install --prefix ${config[project]}`);
+            const config = yield this.parseJSON(context.directory + '/src/config/config.json');
+            yield this.print(`building ${project} ... ⏳`);
+            if (!dirty) {
+                yield this.exec(`rm -rf ${config[project]}/node_modules ${config[project]}/package-lock.json`);
+                yield this.exec(`npm install --prefix ${config[project]}`);
+            }
             yield this.exec(`${config[project]}/node_modules/.bin/tsc -p ${config[project]}`);
-            this.print(`successfully build ${project}🎉`);
+            yield this.print(`successfully build ${project}🎉`);
         });
     }
     publish(context, version, project) {
         return __awaiter(this, void 0, void 0, function* () {
-            const config = this.parseJSON(context.directory + '/config/config.json');
+            const config = yield this.parseJSON(context.directory + '/src/config/config.json');
             yield this.exec(`npm publish ${config[project]}`);
             yield this.bump(version, `publish and release ${version}`, config[project]);
-            yield this.push(config[project], 'origin', 'master');
+            yield this.git_push(config[project], 'origin', 'master');
         });
     }
-    core(context) {
+    core(context, dirty) {
         return __awaiter(this, void 0, void 0, function* () {
-            yield this.build(context, 'core');
+            yield this.build(context, 'core', dirty);
         });
     }
-    core_plugin(context) {
+    core_plugin(context, dirty) {
         return __awaiter(this, void 0, void 0, function* () {
-            yield this.build(context, 'core_plugin');
+            yield this.build(context, 'core_plugin', dirty);
         });
     }
-    cli(context) {
+    cli(context, dirty) {
         return __awaiter(this, void 0, void 0, function* () {
-            yield this.build(context, 'cli');
+            yield this.build(context, 'cli', dirty);
         });
     }
-    exampleApp(context) {
+    exampleApp(context, dirty) {
         return __awaiter(this, void 0, void 0, function* () {
-            yield this.build(context, 'app');
+            yield this.build(context, 'app', dirty);
         });
     }
-    plugin(context) {
+    plugin(context, dirty) {
         return __awaiter(this, void 0, void 0, function* () {
-            yield this.build(context, 'plugin');
+            yield this.build(context, 'plugin', dirty);
         });
     }
-    afterAll(context) {
-        context.api.printHistory();
-    }
-    test(age) {
+    hooks(context) {
         return __awaiter(this, void 0, void 0, function* () {
-            this.action();
+            context.api.printHistory();
         });
     }
-    action() {
-        console.log('action');
+    // @Hook(beforeEach)
+    // @Hook(afterEach)
+    // @Hook(beforeAll)
+    // @Hook(onStart)
+    hookTests(context) {
+        return __awaiter(this, void 0, void 0, function* () {
+            console.log(context.description);
+        });
+    }
+    testlane(dirty) {
+        return __awaiter(this, void 0, void 0, function* () {
+        });
     }
 };
 __decorate([
-    billy_core_1.Lane('release a billy version'),
-    __param(0, billy_core_1.context()),
+    billy_core_1.usesPlugins(billy_plugin_core_1.CorePlugin),
+    billy_core_1.Command('release a billy version'),
+    __param(0, billy_core_1.context()), __param(1, billy_core_1.param(options_1.dirtyOptions)),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object]),
+    __metadata("design:paramtypes", [Object, Boolean]),
     __metadata("design:returntype", Promise)
 ], DevKit.prototype, "release", null);
 __decorate([
-    billy_core_1.Lane('build and commit local changes'),
+    billy_core_1.Command('build and commit local changes'),
     __param(0, billy_core_1.context()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
 ], DevKit.prototype, "commitAll", null);
 __decorate([
-    billy_core_1.Lane('build and commit local changes'),
+    billy_core_1.Command('build and commit local changes'),
     __param(0, billy_core_1.context()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
 ], DevKit.prototype, "pushAll", null);
 __decorate([
-    billy_core_1.Lane('setup development environment'),
+    billy_core_1.Command('setup development environment'),
     __param(0, billy_core_1.context()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
 ], DevKit.prototype, "setup", null);
 __decorate([
-    billy_core_1.Lane('build'),
-    __param(0, billy_core_1.context()), __param(1, billy_core_1.param(projectOptions)),
+    billy_core_1.Command('build'),
+    __param(0, billy_core_1.context()), __param(1, billy_core_1.param(options_1.projectOptions)), __param(2, billy_core_1.param(options_1.dirtyOptions)),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object, String]),
+    __metadata("design:paramtypes", [Object, String, Boolean]),
     __metadata("design:returntype", Promise)
 ], DevKit.prototype, "build", null);
 __decorate([
-    billy_core_1.Lane('publish'),
-    __param(0, billy_core_1.context()), __param(1, billy_core_1.param(versionOptions)), __param(2, billy_core_1.param(projectOptions)),
+    billy_core_1.Command('publish'),
+    __param(0, billy_core_1.context()), __param(1, billy_core_1.param(options_1.versionOptions)), __param(2, billy_core_1.param(options_1.projectOptions)),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object, String, String]),
     __metadata("design:returntype", Promise)
 ], DevKit.prototype, "publish", null);
 __decorate([
-    billy_core_1.Lane('rebuild core'),
-    __param(0, billy_core_1.context()),
+    billy_core_1.Command('rebuild core'),
+    __param(0, billy_core_1.context()), __param(1, billy_core_1.param(options_1.dirtyOptions)),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object]),
+    __metadata("design:paramtypes", [Object, Boolean]),
     __metadata("design:returntype", Promise)
 ], DevKit.prototype, "core", null);
 __decorate([
-    billy_core_1.Lane('rebuild core plugin'),
-    __param(0, billy_core_1.context()),
+    billy_core_1.Command('rebuild core plugin'),
+    __param(0, billy_core_1.context()), __param(1, billy_core_1.param(options_1.dirtyOptions)),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object]),
+    __metadata("design:paramtypes", [Object, Boolean]),
     __metadata("design:returntype", Promise)
 ], DevKit.prototype, "core_plugin", null);
 __decorate([
-    billy_core_1.Lane('rebuild cli'),
-    __param(0, billy_core_1.context()),
+    billy_core_1.Command('rebuild cli'),
+    __param(0, billy_core_1.context()), __param(1, billy_core_1.param(options_1.dirtyOptions)),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object]),
+    __metadata("design:paramtypes", [Object, Boolean]),
     __metadata("design:returntype", Promise)
 ], DevKit.prototype, "cli", null);
 __decorate([
-    billy_core_1.Lane('rebuild app'),
-    __param(0, billy_core_1.context()),
+    billy_core_1.Command('rebuild app'),
+    __param(0, billy_core_1.context()), __param(1, billy_core_1.param(options_1.dirtyOptions)),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object]),
+    __metadata("design:paramtypes", [Object, Boolean]),
     __metadata("design:returntype", Promise)
 ], DevKit.prototype, "exampleApp", null);
 __decorate([
-    billy_core_1.Lane('rebuild plugin'),
-    __param(0, billy_core_1.context()),
+    billy_core_1.Command('rebuild plugin'),
+    __param(0, billy_core_1.context()), __param(1, billy_core_1.param(options_1.dirtyOptions)),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object]),
+    __metadata("design:paramtypes", [Object, Boolean]),
     __metadata("design:returntype", Promise)
 ], DevKit.prototype, "plugin", null);
 __decorate([
-    billy_core_1.Hook('AFTER_ALL'),
+    billy_core_1.Hook(billy_core_1.afterAll),
     __param(0, billy_core_1.context()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
-    __metadata("design:returntype", void 0)
-], DevKit.prototype, "afterAll", null);
-__decorate([
-    billy_core_1.Lane('testlane'),
-    __param(0, billy_core_1.param('age')),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Number]),
     __metadata("design:returntype", Promise)
-], DevKit.prototype, "test", null);
+], DevKit.prototype, "hooks", null);
 __decorate([
-    billy_core_1.Action('app action'),
+    __param(0, billy_core_1.context()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", []),
-    __metadata("design:returntype", void 0)
-], DevKit.prototype, "action", null);
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], DevKit.prototype, "hookTests", null);
+__decorate([
+    billy_core_1.Command({
+        alias: 'test',
+        description: 'testlane'
+    }),
+    billy_core_1.Job(billy_core_1.every(10).seconds),
+    __param(0, billy_core_1.param(options_1.dirtyOptions)),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Boolean]),
+    __metadata("design:returntype", Promise)
+], DevKit.prototype, "testlane", null);
 DevKit = __decorate([
-    billy_core_1.App()
+    billy_core_1.App({
+        allowUnknownOptions: false
+    })
 ], DevKit);
 exports.DevKit = DevKit;
