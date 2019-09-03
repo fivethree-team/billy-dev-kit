@@ -1,34 +1,34 @@
 {
-    "name": "@fivethree/billy-dev-kit",
-    "version": "0.8.1",
-    "description": "dev kit for billy.",
-    "main": "dist/index.js",
-    "scripts": {
-        "build": "node_modules/.bin/tsc -p .",
-        "start": "nodemon --watch 'src/**/*.ts' --exec 'ts-node' src/index.ts",
-        "refresh": "rm -rf ./node_modules ./package-lock.json && npm install",
-        "test": "npm i -g && billy-dev"
-    },
-    "bin": {
-        "billy-dev": "dist/index.js"
-    },
-    "preferGlobal": true,
-    "keywords": [
-        "typescript",
-        "cli",
-        "node",
-        "terminal"
-    ],
-    "author": "garygrossgarten",
-    "license": "MIT",
-    "devDependencies": {
-        "@types/node": "^10.12.18",
-        "nodemon": "^1.18.9",
-        "ts-node": "^7.0.1",
-        "typescript": "^3.2.2"
-    },
-    "dependencies": {
-        "@fivethree/billy-core": "/Users/garygrossgarten/Dev/things/billy/billy-core",
-        "@fivethree/billy-plugin-core": "/Users/garygrossgarten/Dev/things/billy/billy-core-plugin"
-    }
+  "name": "@fivethree/billy-dev-kit",
+  "version": "0.8.1",
+  "description": "dev kit for billy.",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "node_modules/.bin/tsc -p .",
+    "start": "nodemon --watch 'src/**/*.ts' --exec 'ts-node' src/index.ts",
+    "refresh": "rm -rf ./node_modules ./package-lock.json && npm install",
+    "test": "npm i -g && billy-dev"
+  },
+  "bin": {
+    "billy-dev": "dist/index.js"
+  },
+  "preferGlobal": true,
+  "keywords": [
+    "typescript",
+    "cli",
+    "node",
+    "terminal"
+  ],
+  "author": "garygrossgarten",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^10.12.18",
+    "nodemon": "^1.18.9",
+    "ts-node": "^7.0.1",
+    "typescript": "^3.2.2"
+  },
+  "dependencies": {
+    "@fivethree/billy-core": "0.15.3",
+    "@fivethree/billy-plugin-core": "0.15.3"
+  }
 }

@@ -8,9 +8,6 @@ import {
   usesPlugins,
   Hook,
   afterAll,
-  Job,
-  every,
-  onStart,
   ParamOptions,
   isString,
   isNonExistingPath
